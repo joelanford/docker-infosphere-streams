@@ -42,10 +42,10 @@ RUN yum clean all                                 && \
     pip install supervisor                        && \
     echo_supervisord_conf > /etc/supervisord.conf && \
     mkdir /etc/supervisord.d/                     && \
-    printf "[include]\nfiles = /etc/supervisor.d/*.conf\n" >> /etc/supervisord.conf
+    printf "[include]\nfiles = /etc/supervisord.d/*.conf\n" >> /etc/supervisord.conf
 
-ADD files/os-base/supervisor-sshd.conf /etc/supervisor.d/sshd.conf
-ADD files/os-base/supervisor-rsyslog.conf /etc/supervisor.d/rsyslog.conf
+ADD files/os-base/supervisor-sshd.conf /etc/supervisord.d/sshd.conf
+ADD files/os-base/supervisor-rsyslog.conf /etc/supervisord.d/rsyslog.conf
 ADD files/os-base/rsyslog.conf /etc/rsyslog.conf
 
 EXPOSE 22
@@ -106,7 +106,6 @@ EXPOSE 8443
 #################################################
 
 ADD files/streams-config/supervisor-streams.sh /opt/ibm/InfoSphere_Streams/4.0.0.0/bin/supervisor-streams.sh
-ADD files/streams-config/streams.conf /etc/supervisor.d/streams.conf
-ADD files/streams-config/supervisord.conf /etc/supervisord.conf
+ADD files/streams-config/streams.conf /etc/supervisord.d/streams.conf
 
 
