@@ -37,3 +37,8 @@ task :build do
   sh "docker build -t joe.lanford/infosphere-streams ."
 end
 
+desc "squash the docker image"
+task :squash do
+  sh "docker save joe.lanford/infosphere-streams | sudo ./docker-squash -t joe.lanford/infosphere-streams-squashed | docker load"
+end
+
