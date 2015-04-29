@@ -1,6 +1,7 @@
 #!/bin/bash
 
 source /etc/profile.d/streamsprofile.sh
+export HOME=/home/streamsadmin
 
 function begin {
   if [ $STREAMS_HOST_TYPE == "master" ]; then

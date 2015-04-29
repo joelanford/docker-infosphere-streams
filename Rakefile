@@ -25,7 +25,7 @@ task :run, [:nodes] => [:clean, :prereqs] do |t,args|
   nodes = args[:nodes] ? args[:nodes].to_i : 4
   1.upto(nodes) do |i|
     # Start an image.  streams-1 is a master and streams-x (where x>1) is a worker
-    sh "docker run -d -h streams-#{i} --name streams-#{i} --privileged #{i==1 ? "-p 8443:8443" : ""} -p 22 --env STREAMS_HOST_TYPE=#{i==1 ? "master" : "worker"} joe.lanford/infosphere-streams"
+    sh "docker run -d -h streams-#{i} --name streams-#{i} --privileged #{i==1 ? "-p 8443:8443" : ""} -p 22 --env STREAMS_HOST_TYPE=#{i==1 ? "master" : "worker"} --env STREAMS_ZKCONNECT=zookeeper:2181 joelanford/infosphere-streams"
 
     # This seems to be necessary to get the autodns to successfully register each container as it comes up
     sleep 1
@@ -34,11 +34,5 @@ end
 
 desc "build the docker image"
 task :build do
-  sh "docker build -t joe.lanford/infosphere-streams ."
+  sh "docker build -t joelanford/infosphere-streams ."
 end
-
-desc "squash the docker image"
-task :squash do
-  sh "docker save joe.lanford/infosphere-streams | sudo ./docker-squash -t joe.lanford/infosphere-streams-squashed | docker load"
-end
-

@@ -9,33 +9,48 @@ The container includes supervisord and associated configurations to manage the s
 ## Prerequisites
 1. Docker: https://github.com/docker/docker
 2. Rake: https://github.com/ruby/rake
-3. InfoSphere Streams 4.0.0.0 (choose the EL7 native installation package): http://www-01.ibm.com/software/data/infosphere/streams/quick-start/ 
 
-## Setup
-1. Check out the repository.
+## Building the image
+1. Download and install InfoSphere Streams 4.0.0.0 for EL7 at http://www-01.ibm.com/software/data/infosphere/streams/quick-start/
+
+2. Login to the InfoSphere system and create an archive of the InfoSphere Streams directory
+   ```shell
+   cd /opt/ibm && tar zcvf InfoSphere_Streams_4.0.0.0.tar.gz ./InfoSphere_Streams
+   ```
+
+   **Note:** Many large files and directories in the InfoSphere_Streams directory can be safely removed without
+   affecting a deployed Streams domain
+
+3. Check out the repository.
 
   ```shell
   git clone https://github.com/joelanford/docker-infosphere-streams.git
   ```
 
-2. Move the InfoSphere Streams 4.0.0.0 native installation package into place
+4. Move the InfoSphere Streams 4.0.0.0 archive created in step 2 into the ```./docker-infosphere-streams/files``` directory
 
   ```shell
-  mv /path/to/Streams-QuickStart-4.0.0.0-x86_64-el7.tar.gz ./docker-infosphere-streams/files/streams-base
+  mv /path/to/InfoSphere_Streams_4.0.0.0.tar.gz ./docker-infosphere-streams/files/
   ```
 
-3. Build the image
+5. Build the image
 
   ```shell
   cd docker-infosphere-streams
   rake
   ```
 
-4. Configure docker for Automatic DNS (necessary for cluster communication among InfoSphere Streams nodes). See https://github.com/rehabstudio/docker-autodns#prerequisites.
+## Running the container(s):
 
-## Running the container(s): `rake run`
-* By default, `rake run` will start zookeeper, autodns, a single master, and three workers
-* You can override the default number of nodes by invoking rake run with an argument: `rake run[3]`
+1. Configure docker for Automatic DNS (necessary for cluster communication among InfoSphere Streams nodes). See https://github.com/rehabstudio/docker-autodns#prerequisites.
+2. Start the container(s)
+
+  ```shell
+  rake run
+  ```
+
+  **Note:** By default, `rake run` will start zookeeper, autodns, a single master, and three workers.
+  You can override the default number of nodes by invoking rake run with an argument: `rake run[3]`
 
 ## Accessing the cluster
 
@@ -55,5 +70,5 @@ Once you've started a cluster, you can load the Streams Console web interface in
 
 ## Helpful Tips
 * When supervisor starts the streams service when the container starts, it logs output to /var/log/supervisor-streams.log.  This log file can be helpful in debugging problems on the master with the creation and start phases of the domain and instance as well as on the workers with their registration with the domain and addition of themselves to the instance.
-* You can safely stop a single worker and it will remove itself from the instance prior to shutting down.  Make sure to pass a timeout to the docker stop command to give the service enough time for it to cleanly exit (e.g. `docker stop -t 90 streams-4`)
+* You can safely stop a single worker and it will remove itself from the domain and instance prior to shutting down.  Make sure to pass a timeout to the docker stop command to give the service enough time for it to cleanly exit (e.g. `docker stop -t 90 streams-4`)
 
