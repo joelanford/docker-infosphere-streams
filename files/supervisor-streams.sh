@@ -1,55 +1,52 @@
 #!/bin/bash
 
 source /etc/profile.d/streamsprofile.sh
-export HOME=/home/streamsadmin
 
-function begin {
-  if [ $STREAMS_HOST_TYPE == "master" ]; then
-    echo "Setting up Infosphere Streams master..."
+STREAMS_TAGS=${STREAMS_TAGS:-management,application}
+STREAMS_DOMAIN_ID=${STREAMS_DOMAIN_ID:-StreamsDomain}
+STREAMS_DOMAIN_HA_COUNT=${STREAMS_DOMAIN_HA_COUNT:-1}
+STREAMS_INSTANCE_ID=${STREAMS_INSTANCE_ID:-StreamsInstance}
+STREAMS_INSTANCE_HA_COUNT=${STREAMS_INSTANCE_HA_COUNT:-1}
+
+running=1
+trap '{ running=0; }' EXIT
+
+function startup {
+  echo "Setting up Infosphere Streams node..."
+  if ! streamtool lsdomain ${STREAMS_DOMAIN_ID} | grep -i -q -s ${STREAMS_DOMAIN_ID} > /dev/null 2>&1; then
     streamtool mkdomain
     streamtool genkey
-    streamtool chhost -a --tags application,audit,authentication,jmx,management,sws,view $HOSTNAME
+    streamtool chhost -a --tags ${STREAMS_TAGS} ${HOSTNAME}
+    streamtool setdomainproperty domain.highAvailabilityCount=${STREAMS_DOMAIN_HA_COUNT}
     streamtool startdomain
-    streamtool mkinstance
-    streamtool startinstance
-    echo "Infosphere Streams master setup complete."
-  elif [ $STREAMS_HOST_TYPE == "worker" ]; then
-    echo "Setting up Infosphere Streams worker..."
-    echo -n "Waiting for domain to be started..."
-    streamtool lsdomain StreamsDomain | grep -i -q -s started > /dev/null 2>&1
-    while [ $? -ne 0 ]; do
-      sleep 5
-      echo -n "."
-      streamtool lsdomain StreamsDomain | grep -i -q -s started > /dev/null 2>&1
-    done
-    echo ""
+  else
     streamtool genkey
-    streamtool adddomainhost $HOSTNAME
-    streamtool chhost -a --tags application $HOSTNAME
-    echo -n "Waiting for instance to be started..."
-    streamtool lsinstance --started StreamsInstance | grep -i -q -s StreamsInstance > /dev/null 2>&1
-    while [ $? -ne 0 ]; do
+    echo -n "Waiting for domain ${STREAMS_DOMAIN_ID}..."
+    while ! streamtool lsdomain ${STREAMS_DOMAIN_ID} | grep -i -q -s started > /dev/null 2>&1; do
       sleep 5
       echo -n "."
-      streamtool lsinstance --started StreamsInstance | grep -i -q -s StreamsInstance > /dev/null 2>&1
     done
     echo ""
-    streamtool addhost $HOSTNAME
-    echo "Infosphere Streams worker setup complete."
+    streamtool adddomainhost ${HOSTNAME}
+    streamtool chhost -a --tags ${STREAMS_TAGS} ${HOSTNAME}
   fi
-}
-trap finish EXIT
-function finish {
-  if [ $STREAMS_HOST_TYPE == "master" ]; then
-    streamtool stopinstance
-    streamtool rminstance --noprompt
-    streamtool stopdomain
-    streamtool rmdomain --noprompt
-  elif [ $STREAMS_HOST_TYPE == "worker" ]; then
-    streamtool rmhost --noprompt $HOSTNAME
-    streamtool rmdomainhost --noprompt $HOSTNAME
+  if ! streamtool lsinstance ${STREAMS_INSTANCE_ID} | grep -i -q -s ${STREAMS_INSTANCE_ID} > /dev/null 2>&1; then
+    streamtool mkinstance
+    streamtool setinstanceproperty instance.highAvailabilityCount=${STREAMS_INSTANCE_HA_COUNT}
+    streamtool startinstance
+  else
+    echo -n "Waiting for instance ${STREAMS_INSTANCE_ID}..."
+    while ! streamtool lsinstance --started ${STREAMS_INSTANCE_ID} | grep -i -q -s ${STREAMS_INSTANCE_ID} > /dev/null 2>&1; do
+      sleep 5
+      echo -n "."
+    done
+    echo ""
+    streamtool addhost ${HOSTNAME}
   fi
-  exit
+  echo "Infosphere Streams node setup complete."
 }
-begin
-sleep infinity
+
+startup
+while (( running )); do
+  sleep 1
+done

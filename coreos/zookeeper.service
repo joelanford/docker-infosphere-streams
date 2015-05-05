@@ -1,0 +1,24 @@
+[Unit]
+Description=Zookeeper service
+After=docker.service
+Requires=docker.service
+
+[Service]
+TimeoutSec=600
+EnvironmentFile=/etc/environment
+
+ExecStartPre=/usr/bin/docker pull jplock/zookeeper
+
+ExecStart=/bin/bash -c '\
+    /usr/bin/docker run \
+      --hostname %p \
+      --name %p \
+      -e SERVICE_NAME=%p \
+      -p 2181:2181 \
+      jplock/zookeeper'
+
+ExecStop=/usr/bin/docker stop %p
+ExecStop=/usr/bin/docker rm %p
+
+[X-Fleet]
+X-Conflicts=%p@*.service
