@@ -17,7 +17,8 @@ RUN yum install -y tar                         \
                    which                       \
                    xdg-utils                   \
                    zip                         \
-                   java-1.7.0-openjdk-devel && \
+                   java-1.7.0-openjdk-devel || \
+    yum clean all                           && \
     rm -rf /var/cache/*
 
 # Create user for InfoSphere Streams

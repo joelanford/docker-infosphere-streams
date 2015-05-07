@@ -8,33 +8,25 @@ TimeoutSec=600
 EnvironmentFile=/etc/environment
 
 #ExecStartPre=/usr/bin/docker pull joelanford/infosphere-streams
+ExecStartPre=/bin/bash -c '\
+    if docker ps -a | grep -s -q %p-%i > /dev/null 2>&1; then \
+        /usr/bin/docker rm -f %p-%i; \
+    fi'
 
 ExecStart=/bin/bash -c '\
-  echo "Starting streams@%i.service"; \
-  if [ "%i" = "1" ]; then \
-    /usr/bin/docker run \
-      --hostname %p-%i.skydns.local \
-      --name %p-%i \
-      --privileged \
-      -p 8443:8443 \
-      -p 22 \
-      -e STREAMS_TAGS=management \
-      -e STREAMS_ZKCONNECT=zookeeper.skydns.local:2181 \
-      -e SERVICE_NAME=%p-%i \
-      joelanford/infosphere-streams; \
-  else \
-    /usr/bin/docker run \
-      --hostname %p-%i.skydns.local \
-      --name %p-%i \
-      --privileged \
-      -p 22 \
-      -e STREAMS_TAGS=application \
-      -e STREAMS_ZKCONNECT=zookeeper.skydns.local:2181 \
-      -e SERVICE_NAME=%p-%i \
-      joelanford/infosphere-streams; \
-  fi'
+  /usr/bin/docker run \
+    --hostname %p-%i.skydns.local \
+    --name %p-%i \
+    --privileged \
+    -p 8443:8443 \
+    -p 22 \
+    -e STREAMS_TAGS=management,application \
+    -e STREAMS_ZKCONNECT=zookeeper.skydns.local:2181 \
+    -e SERVICE_NAME=%p-%i \
+    joelanford/infosphere-streams;'
 
 ExecStop=/usr/bin/docker stop -t 90 %p-%i
 ExecStop=/usr/bin/docker rm %p-%i
 
 [X-Fleet]
+Conflicts=%p@*.service

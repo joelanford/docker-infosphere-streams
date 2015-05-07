@@ -8,7 +8,10 @@ TimeoutSec=600
 EnvironmentFile=/etc/environment
 
 ExecStartPre=/usr/bin/docker pull jplock/zookeeper
-
+ExecStartPre=/bin/bash -c '\
+    if docker ps -a | grep -s -q %p > /dev/null 2>&1; then \
+        /usr/bin/docker rm -f %p; \
+    fi'
 ExecStart=/bin/bash -c '\
     /usr/bin/docker run \
       --hostname %p \
