@@ -6,6 +6,7 @@ ADD files/InfoSphere_Streams_4.0.0.0.tar.gz /opt/ibm/
 
 # Install InfoSphere Streams prerequisites
 RUN yum install -y tar                         \
+                   ruby                        \
                    gcc                         \
                    gcc-c++                     \
                    initscripts                 \
@@ -32,8 +33,9 @@ ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US.UTF-8
 
 ADD files/streamsprofile.sh /etc/profile.d/
-ADD files/supervisor-streams.sh /opt/ibm/InfoSphere_Streams/4.0.0.0/bin/supervisor-streams.sh
 ADD files/streams.conf /etc/supervisor.d/streams.conf
+ADD files/supervisor-streams.sh /opt/ibm/InfoSphere_Streams/4.0.0.0/bin/supervisor-streams.sh
+ADD files/supervisor-streams.rb /opt/ibm/InfoSphere_Streams/4.0.0.0/bin/supervisor-streams.rb
 
 # Expose the SWS Port
 EXPOSE 8443
