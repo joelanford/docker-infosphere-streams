@@ -20,10 +20,7 @@ ExecStart=/bin/bash -c '\
     --privileged \
     -p 8443:8443 \
     -p 22 \
-    -e ETCD_URL=http://${COREOS_PRIVATE_IPV4}:4001/v2 \
-    -e STREAMS_DOMAIN_COMMAND=start-domain \
-    -e STREAMS_INSTANCE_COMMAND=start-instance \
-    -e STREAMS_TAGS=management,application \
+    -e ETCD_URL=http://${COREOS_PRIVATE_IPV4}:4001 \
     -e STREAMS_ZKCONNECT=zookeeper.skydns.local:2181 \
     -e SERVICE_NAME=%p-%i \
     joelanford/infosphere-streams;'

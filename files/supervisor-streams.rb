@@ -81,8 +81,6 @@ class Domain
       end
     end
   end
-    
-
 
   def registerhost
     system("streamtool registerdomainhost -d #{@id}")
@@ -130,18 +128,18 @@ class Domain
 
   private
   def set_domain_status(status, ttl=nil)
-    command = "curl -s -L '#{@etcd_url}/v2/keys/services/infosphere-streams/domains/#{@id}/status' -XPUT -d value=\"#{status}\" #{ttl ? "-d ttl=#{ttl}" : ""}"
+    command = "curl -s -L '#{@etcd_url}/v2/keys/infosphere-streams/domains/#{@id}/status' -XPUT -d value=\"#{status}\" #{ttl ? "-d ttl=#{ttl}" : ""}"
     `#{command}`
   end
 
   def get_domain_status
-    command = "curl -s -L '#{@etcd_url}/v2/keys/services/infosphere-streams/domains/#{@id}/status'"
+    command = "curl -s -L '#{@etcd_url}/v2/keys/infosphere-streams/domains/#{@id}/status'"
     result = JSON.parse(`#{command}`)["node"]
     result ? result["value"] : nil
   end
 
   def delete_domain_status
-    command = "curl -s -L '#{@etcd_url}/v2/keys/services/infosphere-streams/domains/#{@id}?dir=true&recursive=true' -XDELETE"
+    command = "curl -s -L '#{@etcd_url}/v2/keys/infosphere-streams/domains/#{@id}?dir=true&recursive=true' -XDELETE"
     `#{command}`
   end
 end
@@ -154,17 +152,17 @@ class Instance
   end
   
   def set_instance_status(status, ttl=nil)
-    command = "curl -s -L '#{@etcd_url}/v2/keys/services/infosphere-streams/domains/#{@domain_id}/instances/#{@id}/status' -XPUT -d value=\"#{status}\" #{ttl ? "-d ttl=#{ttl}" : ""}"
+    command = "curl -s -L '#{@etcd_url}/v2/keys/infosphere-streams/domains/#{@domain_id}/instances/#{@id}/status' -XPUT -d value=\"#{status}\" #{ttl ? "-d ttl=#{ttl}" : ""}"
     `#{command}`
   end
 
   def get_instance_status
-    command = "curl -s -L '#{@etcd_url}/v2/keys/services/infosphere-streams/domains/#{@domain_id}/instances/#{@id}/status'"
+    command = "curl -s -L '#{@etcd_url}/v2/keys/infosphere-streams/domains/#{@domain_id}/instances/#{@id}/status'"
     `#{command}`
   end
 
   def delete_instance_status
-    command = "curl -s -L '#{@etcd_url}/v2/keys/services/infosphere-streams/domains/#{@domain_id}/instances/#{@id}?dir=true&recursive=true' -XDELETE"
+    command = "curl -s -L '#{@etcd_url}/v2/keys/infosphere-streams/domains/#{@domain_id}/instances/#{@id}?dir=true&recursive=true' -XDELETE"
     `#{command}`
   end
 
@@ -212,29 +210,34 @@ instance_ha = ENV["STREAMS_INSTANCE_HA_COUNT"]
 tags = Set.new
 
 domain = Domain.new(domain_id, etcd_url)
-instance = Instance.new(domain_id, instance_id, etcd_url)
 
 domain.registerhost
-unless domain.exist?
-  domain.create
-  tags << "management"
-end
 
-domain.genkey
-domain.monitor
+#if domain.exist?
+#  tags << "application"
+#else
+#  domain.create
+#  tags << "management"
+#end
+#
+#domain.genkey
+#domain.start_monitor
+#
+#ha = domain.get_high_availability
+#if ha < 3 && (domain.starting? || domain.started?)
+#  domain.set_high_availability(ha + 1)
+#  tags << "management"
+#end
+#
+#domain.change_host_tags(host, tags)
+#
+#unless domain.starting? || domain.started?
+#  domain.start
+#end
+#
+#domain.wait_monitor
 
-ha = domain.get_high_availability
-if ha < 3 && (domain.starting? || domain.started?)
-  domain.set_high_availability(ha + 1)
-  tags << "management"
-end
-
-domain.change_host_tags(host, tags)
-
-unless domain.starting? || domain.started?
-  domain.start
-end
-
+#instance = Instance.new(domain_id, instance_id, etcd_url)
 
 #instance.create
 #instance.set_high_availability(instance_ha)
@@ -245,3 +248,7 @@ end
 #domain.stop
 #domain.remove
 #domain.unregisterhost
+
+while true
+  sleep 1
+end
